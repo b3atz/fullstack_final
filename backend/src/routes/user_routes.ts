@@ -6,7 +6,7 @@ import { ICreateUsersBody, IUpdateUsersBody } from "../types.js";
 export function UserRoutesInit(app: FastifyInstance) {
 	// Route that returns all users, soft deleted and not
 	app.get("/hello", async (request: FastifyRequest, _reply: FastifyReply) => {
-		return "Helllo";
+		return "Hello";
 	});
 	app.get("/dbTest", async (request: FastifyRequest, _reply: FastifyReply) => {
 		return request.em.find(User, {}, { filters: { [SOFT_DELETABLE_FILTER]: false } });
