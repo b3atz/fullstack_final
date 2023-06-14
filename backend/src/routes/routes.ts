@@ -3,6 +3,8 @@ dotenv.config();
 
 import { FastifyInstance } from "fastify";
 import { UserRoutesInit } from "./user_routes.js";
+import { ExerciseRoutesInit } from "./ecercise_routes.js";
+import { WorkoutRoutesInit } from "./workout_routes.js";
 
 /** This function creates all backend routes for the site
  *
@@ -16,6 +18,8 @@ async function DoggrRoutes(app: FastifyInstance, _options = {}) {
 	}
 
 	UserRoutesInit(app);
+	ExerciseRoutesInit(app);
+	WorkoutRoutesInit(app);
 }
 
 export default DoggrRoutes;

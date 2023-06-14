@@ -12,7 +12,7 @@ export class Exercise {
     desc: string;
 
     @Property()
-    muscel: string[];
+    muscle: string;
     
     @Property()
     reps: number;
