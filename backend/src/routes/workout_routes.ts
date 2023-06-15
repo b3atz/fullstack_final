@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { WorkoutBody, WorkoutUpdateBody } from "../types";
 import { Workout, split } from "../db/entities/Workout.js";
 import { Exercise } from "../db/entities/Exercise.js";
+import { User } from "../db/entities/User.js";
 
 //Routes for Workout
 export function WorkoutRoutesInit(app: FastifyInstance) {
@@ -32,7 +33,7 @@ export function WorkoutRoutesInit(app: FastifyInstance) {
     });
     //Create
     app.post<{Body:WorkoutBody}>("/workout",async (req,reply) => {
-        const {name,desc,type} = req.body;
+        const {name,desc,type,ownerID} = req.body;
         let typeD: split;
         console.log(type);
         try{
@@ -50,10 +51,13 @@ export function WorkoutRoutesInit(app: FastifyInstance) {
                 default:
                     throw("Invlaid Type")
             }
+            const user = await req.em.findOneOrFail(User,{id:ownerID})
             const workout = await req.em.create(Workout, {
                 name,
                 desc,
-                type: typeD
+                type: typeD,
+                owner: user,
+                effort: 0
             })
             
             await req.em.flush();

@@ -1,7 +1,8 @@
-import { Entity, Property, Unique } from "@mikro-orm/core";
+import { Cascade, Collection, Entity, OneToMany, Property, Unique } from "@mikro-orm/core";
 import { SoftDeletable } from "mikro-orm-soft-delete";
 import { DoggrBaseEntity } from "./DoggrBaseEntity.js";
 import { Enum } from "@mikro-orm/core";
+import { Workout } from "./Workout.js";
 
 export enum UserRole {
 	ADMIN = 'Admin',
@@ -25,4 +26,11 @@ export class User extends DoggrBaseEntity {
 
 	@Enum(() => UserRole)
 	role!: UserRole; // string enum
+
+	@OneToMany (
+		() => Workout,
+		workout => workout.owner,
+		{cascade: [Cascade.PERSIST,Cascade.REMOVE]}
+	)
+	workouts!: Collection<Workout>;
 }

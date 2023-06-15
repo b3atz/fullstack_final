@@ -1,9 +1,8 @@
 import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
+import { DoggrBaseEntity } from "./DoggrBaseEntity.js";
 
 @Entity({ tableName: "exercise"})
-export class Exercise {
-    @PrimaryKey()
-    id!: number;
+export class Exercise extends DoggrBaseEntity {
     
     @Property()
     name: string;

@@ -1,5 +1,7 @@
-import { Collection, Entity, ManyToMany, PrimaryKey, Property} from "@mikro-orm/core";
+import { Collection, Entity, ManyToMany, ManyToOne, PrimaryKey, Property} from "@mikro-orm/core";
 import { Exercise } from "./Exercise.js";
+import type { Rel } from "@mikro-orm/core"
+import { User } from "./User.js";
 
 export enum split{
     PUSH = 'push',
@@ -11,8 +13,8 @@ export class Workout {
     @PrimaryKey()
     id!:number;
 
-    @Property()
-    owner: string;
+    @ManyToOne()
+    owner!: Rel<User>;
 
     @Property()
     name:string;

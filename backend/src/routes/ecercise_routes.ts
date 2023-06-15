@@ -34,7 +34,8 @@ export function ExerciseRoutesInit(app: FastifyInstance) {
                 muscle,
                 reps,
                 sets,
-                weight
+                weight,
+                effort:0
             })
 			
             await req.em.flush();

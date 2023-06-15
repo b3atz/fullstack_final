@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router";
 import { Home } from './pages/Home';
 import Workouts from './pages/Workouts';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Exercises from './pages/Exercise';
 
 function App() {
 
@@ -21,6 +22,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />}></Route>
         <Route path="/workouts" element={<Workouts />}></Route>
+        <Route path="/exercises" element={<Exercises />}></Route>
       </Routes>
     </>
   )

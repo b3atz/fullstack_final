@@ -1,7 +1,23 @@
+import bcrypt from "bcrypt";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { SOFT_DELETABLE_FILTER } from "mikro-orm-soft-delete";
 import { User, UserRole } from "../db/entities/User.js";
 import { ICreateUsersBody, IUpdateUsersBody } from "../types.js";
+import { Workout } from "../db/entities/Workout.js";
+import { initializeApp } from "firebase/app";
+import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword } from "firebase/auth";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDrVy6bHS0k0xpFkc1KUWIvplCXqqflc84",
+  authDomain: "fullstack-project-6e2ed.firebaseapp.com",
+  projectId: "fullstack-project-6e2ed",
+  storageBucket: "fullstack-project-6e2ed.appspot.com",
+  messagingSenderId: "866161622174",
+  appId: "1:866161622174:web:7c7be0892b4b1a099e8f8f",
+  measurementId: "G-PZFWLSBKHJ"
+};
+const firebase = initializeApp(firebaseConfig);
+const auth = getAuth(firebase);
 
 export function UserRoutesInit(app: FastifyInstance) {
 	// Route that returns all users, soft deleted and not
@@ -9,7 +25,7 @@ export function UserRoutesInit(app: FastifyInstance) {
 		return "Hello";
 	});
 	app.get("/dbTest", async (request: FastifyRequest, _reply: FastifyReply) => {
-		return request.em.find(User, {}, { filters: { [SOFT_DELETABLE_FILTER]: false } });
+		return request.em.find(User, {}, { filters: { [SOFT_DELETABLE_FILTER]: false },populate:[ "workouts"] });
 	});
 
 	// Route that returns all users who ARE NOT SOFT DELETED
@@ -27,16 +43,21 @@ export function UserRoutesInit(app: FastifyInstance) {
 	app.post<{ Body: ICreateUsersBody }>("/users", async (req, reply) => {
 		const { name, email, password } = req.body;
 
+		
 		try {
+			const passwordH = await bcrypt.hash(password, 10);
 			const newUser = await req.em.create(User, {
 				name,
 				email,
-				password,
+				password: passwordH,
 				// We'll only create Admins manually!
 				role: UserRole.USER
 			});
 
 			await req.em.flush();
+			createUserWithEmailAndPassword(auth,email,password).catch(err => {
+				throw(err)
+			});
 			return reply.send(newUser);
 		} catch (err) {
 			return reply.status(500).send({ message: err.message });
@@ -65,6 +86,20 @@ export function UserRoutesInit(app: FastifyInstance) {
 		// Reminder -- this is how we persist our JS object changes to the database itself
 		await req.em.flush();
 		reply.send(userToChange);
+	});
+	//Add workout to user
+	app.put<{ Body:{id,w_id} }>("/usersWork", async (req, reply) => {
+		const {id,w_id} = req.body;
+
+		try {const userToChange = await req.em.findOneOrFail(User, id, {strict: true});
+        const workout = await req.em.findOneOrFail(Workout, {id: w_id},{strict:true})
+		userToChange.workouts.add(workout);
+        await req.em.flush();
+        return reply.send(userToChange);
+		}catch(err){
+            return reply.status(500).send(err);
+		}
+
 	});
 
 	// DELETE
@@ -97,4 +132,31 @@ export function UserRoutesInit(app: FastifyInstance) {
 			return reply.status(500).send(err);
 		}
 	});
+	app.post<{
+		Body: {
+			email: string,
+			password: string,
+		}
+	}>("/login", async (req, reply) => {
+		const { email, password } = req.body;
+
+		try {
+			const theUser = await req.em.findOneOrFail(User, {email}, { strict: true });
+
+			const hashCompare = await bcrypt.compare(password, theUser.password);
+			if (hashCompare) {
+				signInWithEmailAndPassword(auth,email,password);
+
+				reply.send(theUser);
+			} else {
+				app.log.info(`Password validation failed -- ${password} vs ${theUser.password}`);
+				reply.status(401)
+					.send("Incorrect Password");
+			}
+		} catch (err) {
+			reply.status(500)
+				.send(err);
+		}
+	});
 }
+
